@@ -1,12 +1,11 @@
 import streamlit as st
 import folium
 from streamlit_folium import st_folium
-from math import sqrt
 
 st.set_page_config(page_title="서울 관광지도 🌏", layout="wide")
 
 st.title("🌆 외국인이 좋아하는 서울 관광지 Top 10 지도")
-st.write("지도를 클릭하면 해당 관광지 설명과 가까운 지하철역 정보가 아래에 표시됩니다!")
+st.write("마커(빨간 아이콘)를 클릭하면 관광지 정보가 아래에 표시됩니다! 👇")
 
 # 관광지 데이터 (이름, 위도, 경도, 설명, 지하철역)
 places = [
@@ -25,30 +24,28 @@ places = [
 # 지도 생성
 m = folium.Map(location=[37.5665, 126.9780], zoom_start=12)
 
-# 마커 추가 (눈에 잘 띄게 설정)
-for name, lat, lon, desc, subway in places:
+# 마커에 식별 ID 태그 포함
+for i, (name, lat, lon, desc, subway) in enumerate(places):
     folium.Marker(
         [lat, lon],
         tooltip=name,
+        popup=name,  # 여기 popup의 텍스트가 ↓ 선택을 위한 key가 됨
         icon=folium.Icon(color="red", icon="info-sign")
     ).add_to(m)
 
-# 지도 출력 & 클릭 정보 추출
+# 지도 출력
 map_data = st_folium(m, width=850, height=600)
 
-# 클릭된 위치 해석
+# 선택된 관광지 찾기
 selected_place = None
-if map_data and map_data.get("last_clicked"):
-    click_lat = map_data["last_clicked"]["lat"]
-    click_lon = map_data["last_clicked"]["lng"]
+if map_data and map_data.get("last_object_clicked"):
+    clicked_name = map_data["last_object_clicked"].get("popup")
+    for place in places:
+        if place[0] == clicked_name:
+            selected_place = place
+            break
 
-    # 클릭 좌표와 가장 가까운 관광지 찾기
-    selected_place = min(
-        places,
-        key=lambda p: sqrt((p[1] - click_lat)**2 + (p[2] - click_lon)**2)
-    )
-
-# 관광지 상세 정보 표시
+# 상세정보 출력
 st.subheader("📍 선택한 관광지 정보")
 
 if selected_place:
@@ -57,6 +54,6 @@ if selected_place:
 ### {name}
 - {desc}
 - **가장 가까운 지하철역:** {subway}
-""")
+    """)
 else:
-    st.write("👆 관광지를 클릭하면 정보가 여기에 표시됩니다.")
+    st.write("👆 관광지 마커를 클릭하면 정보가 여기에 표시됩니다.")
