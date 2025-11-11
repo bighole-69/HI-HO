@@ -1,0 +1,71 @@
+import pandas as pd
+import plotly.express as px
+import streamlit as st
+import math
+
+st.set_page_config(page_title="국가별 MBTI 시각화", layout="wide")
+
+# 데이터 불러오기
+@st.cache_data
+def load_data():
+    return pd.read_csv("countriesMBTI_16types.csv")
+
+df = load_data()
+
+st.title("🌍 국가별 MBTI 비율 시각화 대시보드")
+st.write("국가를 선택하면 해당 국가의 MBTI 유형 분포를 확인할 수 있습니다.")
+
+# -----------------------------------
+# (1) 국가 선택 → MBTI 분포 그래프
+# -----------------------------------
+
+country = st.selectbox("국가를 선택하세요:", df["Country"].unique())
+
+selected = df[df["Country"] == country].iloc[0].drop("Country")
+selected = selected.sort_values(ascending=False)
+
+# 빨간색 계열 그라데이션
+colors = px.colors.sequential.Reds[len(selected)]
+colors = colors[::-1]  # 순서 반전
+
+fig1 = px.bar(
+    x=selected.index,
+    y=selected.values,
+    color=selected.index,
+    color_discrete_sequence=colors,
+    labels={"x": "MBTI 유형", "y": "비율"},
+    title=f"🇨🇴 {country} 의 MBTI 비율 (높은 순)"
+)
+fig1.update_layout(showlegend=False)
+
+st.plotly_chart(fig1, use_container_width=True)
+
+# -----------------------------------
+# (2) MBTI 유형 선택 → 높은 국가순 그래프
+# -----------------------------------
+st.markdown("---")
+st.subheader("🔍 MBTI 유형별로 어떤 나라가 가장 많은지 보기")
+
+mbti_types = list(df.columns)
+mbti_types.remove("Country")
+
+mbti_choice = st.selectbox("MBTI 유형을 선택하세요:", mbti_types)
+
+ranking = df[["Country", mbti_choice]].sort_values(by=mbti_choice, ascending=False)
+
+# 색상 패턴 (파랑 → 노랑 → 빨강 반복)
+base_colors = ["blue", "yellow", "red"]
+color_cycle = (base_colors * math.ceil(len(ranking) / 3))[:len(ranking)]
+
+fig2 = px.bar(
+    ranking,
+    x="Country",
+    y=mbti_choice,
+    color="Country",
+    color_discrete_sequence=color_cycle,
+    labels={"Country": "국가", mbti_choice: "비율"},
+    title=f"📈 {mbti_choice} 유형이 많은 국가 순위"
+)
+
+fig2.update_layout(showlegend=False)
+st.plotly_chart(fig2, use_container_width=True)
