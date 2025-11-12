@@ -1,3 +1,4 @@
+st.write("컬럼 이름 확인:", df.columns.tolist())
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
