@@ -10,8 +10,13 @@ st.title("📊 서울시 자치구별 연령별 인구 통계")
 @st.cache_data
 def load_data():
     df = pd.read_csv("population.csv")
-    # 천 단위 콤마 제거 후 숫자로 변환
-    df = df.apply(lambda x: x.str.replace(",", "").astype(float) if x.dtype == "object" else x)
+    # object(문자열) 컬럼 중 숫자로 바꿀 수 있는 열만 변환
+    for col in df.columns:
+        if df[col].dtype == "object":
+            try:
+                df[col] = df[col].str.replace(",", "").astype(float)
+            except Exception:
+                pass  # 행정구 등 숫자가 아닌 열은 그냥 둔다
     return df
 
 df = load_data()
@@ -46,8 +51,8 @@ fig.add_trace(go.Scatter(
     name='여성', line=dict(color='lightgreen', width=2)
 ))
 fig.add_trace(go.Scatter(
-    x=ages, y=total_pop, mode='lines', name='총합',
-    line=dict(color='gray', dash='dot', width=1.5)
+    x=ages, y=total_pop, mode='lines',
+    name='총합', line=dict(color='gray', dash='dot', width=1.5)
 ))
 
 fig.update_layout(
