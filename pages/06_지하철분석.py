@@ -12,10 +12,6 @@ st.title("🚇 2025년 10월 지하철 이용 현황 분석")
 def load_data():
     return pd.read_csv("subway.csv", encoding="cp949")
 
-# 디버깅용 파일 확인 기능 (필요하면 주석 해제)
-# st.write("Current directory:", os.getcwd())
-# st.write("Available files:", os.listdir())
-
 df = load_data()
 
 # 날짜를 datetime으로 변환
@@ -48,8 +44,8 @@ filtered = filtered.sort_values(by="총이용객", ascending=False)
 
 st.subheader(f"{pd.to_datetime(selected_date).strftime('%Y-%m-%d')} · {selected_line} 이용객 순위")
 
-# 그래프 색상 정의
-colors = ["red", "blue", "yellow"]
+# ✔ 색상 순서 변경: 파란색 → 노란색 → 빨간색
+colors = ["blue", "yellow", "red"]
 
 # Plotly 막대그래프 생성
 fig = px.bar(
